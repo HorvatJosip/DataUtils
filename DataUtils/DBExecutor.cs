@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Xml.Linq;
 
 namespace DataUtils
 {
@@ -24,7 +26,7 @@ namespace DataUtils
         #region Properties
 
         /// <summary>
-        /// Defines if transactions should be used in database queries.
+        /// Defines if transactions should be used in database queries and procedure calls.
         /// </summary>
         public bool UseTransactions { get; set; }
 
@@ -33,14 +35,64 @@ namespace DataUtils
         #region Constructor
 
         /// <summary>
-        /// Default constructor.
+        /// Creates an instance of the <see cref="DBExecutor"/> with a connection string (can be provided
+        /// by itself or via a file path to the xml containing the data) and an optional error handler that is
+        /// hooked to the <see cref="SqlConnection.InfoMessage"/> event.
         /// </summary>
         /// <param name="errorHandler">Handler used for reporting database errors.</param>
-        /// <param name="connectionString">String containing database connection data.</param>
+        /// <param name="connectionString">String containing database connection data or path to
+        /// XML file that contains connection string data.</param>
         public DBExecutor(string connectionString, Action<SqlConnection, SqlInfoMessageEventArgs> errorHandler = null)
         {
+            // Set the error handler
             _errorHandler = errorHandler;
-            _connectionString = connectionString;
+
+            // If the passed in string is the connection string...
+            if (File.Exists(connectionString) == false)
+                // Just set it as the connection string
+                _connectionString = connectionString;
+
+            // Otherwise, if it is the xml with connection string data...
+            else
+            {
+                // Open the xml for reading
+                var xml = XDocument.Load(connectionString);
+
+                // Get the nodes that make up the connection string
+                var connectionStringNodes = xml.Descendants("ConnectionString").First().Descendants().ToList();
+
+                // Get the server name
+                var server = connectionStringNodes[0].Value;
+
+                // If there is an instance name...
+                if (connectionStringNodes[1].IsEmpty == false)
+                    // Add it to the server name
+                    server += '\\' + connectionStringNodes[1].Value;
+
+                // Construct the connection string using the connection string builder
+                var connectionStringBuilder = new SqlConnectionStringBuilder
+                {
+                    // Server name
+                    DataSource = server,
+
+                    // Database name
+                    InitialCatalog = connectionStringNodes[2].Value,
+
+                    // Username
+                    UserID = connectionStringNodes[3].Value,
+
+                    // Integrated security
+                    IntegratedSecurity = bool.Parse(connectionStringNodes[6].Value)
+                };
+
+                // If there is a password...
+                if (connectionStringNodes[4].IsEmpty == false)
+                    // Set it
+                    connectionStringBuilder.Password = connectionStringNodes[4].Value;
+
+                // Set the connection string
+                _connectionString = connectionStringBuilder.ConnectionString;
+            }
         }
 
         #endregion
