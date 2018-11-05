@@ -6,11 +6,11 @@
 
 * Package Manager Console
 
-`Install-Package DataUtils -Version 1.0.0`
+`Install-Package DataUtils -Version 1.0.1`
 
 * .NET CLI
 
-`dotnet add package DataUtils -Version 1.0.0`
+`dotnet add package DataUtils -Version 1.0.1`
 
 ## Usage
 
@@ -20,7 +20,7 @@
 
 ```C#
 DBExecutor executor = new DBExecutor(
-				"Server=myServerAddress;Database=myDataBase;Trusted_Connection=True;",
+		"Server=myServerAddress;Database=myDataBase;Trusted_Connection=True;",
                 (conn, e) => Debug.WriteLine($"An error occurred in the database (caused by {e.Source}): {e.Message}.")
 );
 ```
@@ -29,7 +29,7 @@ DBExecutor executor = new DBExecutor(
 
 ```C#
 DBExecutor executor = new DBExecutor(
-				"C:\\Settings\\Data.xml",
+		"C:\\Settings\\Data.xml",
                 (conn, e) => Debug.WriteLine($"An error occurred in the database (caused by {e.Source}): {e.Message}.")
 );
 ```
