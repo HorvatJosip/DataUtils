@@ -149,3 +149,37 @@ This method can be used to perform custom querying. Here is the method signature
 * `parameters` - parameters to use while executing the procedure or query.
 
 The method returns how many rows were affected in the database.
+
+#### Overloaded `Retrieve` method
+
+This method can be used to perform custom data fetching. Here is the method signature:
+
+`public List<T> Retrieve<T>(string procedureNameOrQuery, params SqlParameter[] parameters)`
+
+The parameters are the same as in `Execute`, but the return type allows you to customize what you are fetching.
+
+#### Example
+
+Let's say you have a table Settings and you want to get only values from columns Name and Value:
+
+```SQL
+SELECT
+	Name, Value
+FROM Settings
+```
+
+That means that in C# you only have to create a class that has these properties (the class name doesn't matter here):
+
+```C#
+class Something
+{
+	public string Name { get; set; }
+	public string Value { get; set; }
+}
+```
+
+This will allow you to get the settings by calling the `Retrieve` method like so:
+
+```C#
+List<Something> settings = executor.Retrieve<Something>("SELECT Name, Value FROM Settings");
+```
