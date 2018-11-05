@@ -1,0 +1,105 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>DataUtils</name>
+    </assembly>
+    <members>
+        <member name="T:DataUtils.DBExecutor">
+            <summary>
+            Used for executing queries or procedures in the SQL Server database.
+            </summary>
+        </member>
+        <member name="P:DataUtils.DBExecutor.UseTransactions">
+            <summary>
+            Defines if transactions should be used in database queries and procedure calls.
+            </summary>
+        </member>
+        <member name="M:DataUtils.DBExecutor.#ctor(System.String,System.Action{System.Data.SqlClient.SqlConnection,System.Data.SqlClient.SqlInfoMessageEventArgs})">
+            <summary>
+            Creates an instance of the <see cref="T:DataUtils.DBExecutor"/> with a connection string (can be provided
+            by itself or via a file path to the xml containing the data) and an optional error handler that is
+            hooked to the <see cref="E:System.Data.SqlClient.SqlConnection.InfoMessage"/> event.
+            </summary>
+            <param name="errorHandler">Handler used for reporting database errors.</param>
+            <param name="connectionString">String containing database connection data or path to
+            XML file that contains connection string data.</param>
+        </member>
+        <member name="M:DataUtils.DBExecutor.Create``1(``0)">
+            <summary>
+            Performs an insert of the given instance into the database.
+            </summary>
+            <typeparam name="T">Type of object to insert.</typeparam>
+            <param name="instance">Instance to insert into the database.</param>
+            <returns></returns>
+        </member>
+        <member name="M:DataUtils.DBExecutor.Create``1(System.Collections.Generic.IEnumerable{``0})">
+            <summary>
+            Performs an insert on the collection of objects of type <typeparamref name="T"/>.
+            </summary>
+            <typeparam name="T">Type of objects being inserted.</typeparam>
+            <param name="collection">Collection of objects to insert.</param>
+            <returns></returns>
+        </member>
+        <member name="M:DataUtils.DBExecutor.Retrieve``1(System.String,System.Data.SqlClient.SqlParameter[])">
+            <summary>
+            Executes the given string in the database and, using the <see cref="T:System.Data.SqlClient.SqlDataReader"/>,
+            converts the provided data into objects of type <typeparamref name="T"/>.
+            Data is set using the properties of the object and their public set methods.
+            Each property is set by name which means that names of the properties should
+            match the names of the columns in the database.
+            </summary>
+            <param name="procedureNameOrQuery">Name of the procedure (1 word) or a query.</param>
+            <param name="parameters">Parameters used with procedure or query</param>
+            <returns></returns>
+        </member>
+        <member name="M:DataUtils.DBExecutor.Retrieve``1">
+            <summary>
+            Retreives a collection of objects of type <typeparamref name="T"/> from
+            the database.
+            </summary>
+            <typeparam name="T">Type of object to get.</typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:DataUtils.DBExecutor.Update``1(``0)">
+            <summary>
+            Updates an instance in the database.
+            </summary>
+            <typeparam name="T">Type of object to update.</typeparam>
+            <param name="instance">Instance to update.</param>
+            <returns></returns>
+        </member>
+        <member name="M:DataUtils.DBExecutor.Delete``1(``0)">
+            <summary>
+            Deletes the given instance in the database.
+            </summary>
+            <typeparam name="T">Type of object that needs to be deleted.</typeparam>
+            <param name="instance">Instance of the object to delete.</param>
+            <returns></returns>
+        </member>
+        <member name="M:DataUtils.DBExecutor.Execute(System.String,System.Data.SqlClient.SqlParameter[])">
+            <summary>
+            Executes the given string in the database.
+            </summary>
+            <param name="procedureNameOrQuery">Name of the procedure (1 word) or a query.</param>
+            <param name="parameters">Parameters used with procedure or query</param>
+            <returns></returns>
+        </member>
+        <member name="M:DataUtils.DBExecutor.ExecuteProcedure(System.Object,System.String)">
+            <summary>
+            Executes a procedure in the database.
+            <para>Usage: The caller (should be a method) needs to be named like the
+            procedure in the database.</para>
+            <para>The '<paramref name="parameters"/>' paramater that is passed
+            in needs to be object with properties that correspond to the parameters of the
+            procedure in the database.</para>
+            <para>Example: the caller is a method with the following signature:
+            DoWork(int firstParameter). That means that there is a procedure named DoWork in the
+            database that takes in a parameter named firstParameter that is of type int.</para>
+            <para>The way this method should then be called: ExecuteProcedure(new { firstParameter });</para>
+            </summary>
+            <param name="parameters">Parameters used in the procedure (can be left null if there aren't any).</param>
+            <param name="procedureName">Name of the procedure to execute.</param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

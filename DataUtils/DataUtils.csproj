@@ -6,14 +6,19 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Hoc</Authors>
     <Company></Company>
-    <Description>Simplifies the PPPK</Description>
-    <PackageProjectUrl></PackageProjectUrl>
+    <Description>Simplifies the PPPK.</Description>
+    <PackageProjectUrl>https://github.com/HorvatJosip/DataUtils</PackageProjectUrl>
     <RepositoryUrl>https://github.com/HorvatJosip/DataUtils</RepositoryUrl>
     <PackageTags>DataUtils Data Utils PPPK Hoc pppk</PackageTags>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>F:\Programiranje\C#\Libraries\DataUtils\DataUtils\DataUtils.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>E:\Windows Folders\Desktop\DataUtils\DataUtils\DataUtils.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
