@@ -224,7 +224,7 @@ namespace DataUtils
         /// <typeparam name="T">Type of object to update.</typeparam>
         /// <param name="instance">Instance to update.</param>
         /// <returns></returns>
-        public bool Update<T>(T instance)
+        public int Update<T>(T instance)
         {
             // Get the object's type
             var type = typeof(T);
@@ -244,7 +244,7 @@ namespace DataUtils
             var query = $"UPDATE {type.Name} SET {updates} WHERE {Equate(pkProperty)}";
 
             // Execute the query and return if it was successful
-            return Execute(query, propertyParams.ToArray()) > 0;
+            return Execute(query, propertyParams.ToArray());
         }
 
         /// <summary>
