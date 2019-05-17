@@ -126,7 +126,7 @@ namespace DataUtils
             var type = typeof(T);
 
             // Get the properties from the type
-            var properties = GetProperties<T>(true, out _);
+            var properties = GetProperties<T>(CRUD.Create, true, out _);
 
             // Construct parameter list
             var parameterList = string.Join(", ", properties.Select(prop => prop.Name));
@@ -167,7 +167,8 @@ namespace DataUtils
         /// converts the provided data into objects of type <typeparamref name="T"/>.
         /// Data is set using the properties of the object and their public set methods.
         /// Each property is set by name which means that names of the properties should
-        /// match the names of the columns in the database.
+        /// match the names of the columns in the database. To skip a property, use
+        /// <see cref="SkipAttribute"/>.
         /// </summary>
         /// <param name="procedureNameOrQuery">Name of the procedure (1 word) or a query.</param>
         /// <param name="parameters">Parameters used with procedure or query</param>
@@ -181,9 +182,7 @@ namespace DataUtils
                 var collection = new List<T>();
 
                 // Get the properties from the type
-                var properties = typeof(T).GetProperties()
-                    // Filter to those with public setters
-                    .Where(prop => prop.GetSetMethod()?.IsPublic == true);
+                var properties = GetProperties<T>(CRUD.Retrieve, false, out _);
 
                 // Create an sql data reader using the command
                 using (var reader = command.ExecuteReader())
@@ -230,7 +229,7 @@ namespace DataUtils
             var type = typeof(T);
 
             // Get the properties from the type and...
-            var propertyParams = GetProperties<T>(false, out PropertyInfo pkProperty)
+            var propertyParams = GetProperties<T>(CRUD.Update, false, out PropertyInfo pkProperty)
                 // Create parameters based on the properties
                 .Select(prop => new SqlParameter('@' + prop.Name, prop.GetValue(instance)));
 
@@ -238,7 +237,7 @@ namespace DataUtils
             string Equate(PropertyInfo prop) => $"{prop.Name} = @{prop.Name}";
 
             // Construct update list
-            var updates = string.Join(", ", GetProperties<T>(true, out _).Select(Equate));
+            var updates = string.Join(", ", GetProperties<T>(CRUD.Update, true, out _).Select(Equate));
 
             // Construct the update query
             var query = $"UPDATE {type.Name} SET {updates} WHERE {Equate(pkProperty)}";
@@ -256,13 +255,24 @@ namespace DataUtils
         public bool Delete<T>(T instance)
         {
             // Get the primary key property from the type
-            GetProperties<T>(false, out PropertyInfo pkProperty);
+            GetProperties<T>(CRUD.Delete, false, out PropertyInfo pkProperty);
 
             // Return the result of deleting by its value
             return Execute($"DELETE FROM {typeof(T).Name} WHERE {pkProperty.Name} = {pkProperty.GetValue(instance)}") > 0;
         }
 
         #endregion
+
+        /// <summary>
+        /// Gets values from an "enum table".
+        /// </summary>
+        /// <typeparam name="T">Type of the value column.</typeparam>
+        /// <param name="name">Name of the "enum table".</param>
+        /// <param name="nameColumn">Name of the name column.</param>
+        /// <param name="valueColumn">Name of the value column.</param>
+        /// <returns></returns>
+        public List<DbEnum<T>> GetEnum<T>(string name, string nameColumn = "Name", string valueColumn = "Id")
+            => Retrieve<DbEnum<T>>($"SELECT {valueColumn} as {nameof(DbEnum<T>.Value)}, {nameColumn} as {nameof(DbEnum<T>.Name)} FROM {name}");
 
         /// <summary>
         /// Executes the given string in the database.
@@ -308,10 +318,15 @@ namespace DataUtils
             return Execute(procedureName, sqlParameters.ToArray());
         }
 
-        private IEnumerable<PropertyInfo> GetProperties<T>(bool withoutPrimaryKey, out PropertyInfo pkProperty)
+        #region Helpers
+
+        private IEnumerable<PropertyInfo> GetProperties<T>(CRUD operation, bool withoutPrimaryKey, out PropertyInfo pkProperty)
         {
-            // Get the properties from the type
-            var properties = typeof(T).GetProperties();
+            var properties = typeof(T)
+                // Get the properties from the type
+                .GetProperties()
+                // Filter by the operation if the skip attribute is defined
+                .Where(prop => prop.GetCustomAttribute<SkipAttribute>()?.Operation.HasFlag(operation) != true);
 
             // Try to find the primary key property
             pkProperty = properties.FirstOrDefault(prop => Attribute.IsDefined(prop, typeof(KeyAttribute)));
@@ -393,7 +408,9 @@ namespace DataUtils
                     return action(command);
                 }
             }
-        }
+        } 
+
+        #endregion
 
         #endregion
     }
